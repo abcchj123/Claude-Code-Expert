@@ -1,11 +1,11 @@
 import { asc, eq, sql } from 'drizzle-orm';
 import { db } from '../db';
-import { tickets, type Ticket } from '../db/schema';
+import { tickets, type TicketSelect } from '../db/schema';
 import { TICKET_PRIORITY, TICKET_STATUS, type TicketStatus } from '@/shared/constants/columns';
 import type { CreateTicketInput } from '@/shared/validations/ticket';
 
 export const ticketService = {
-  async findAll(status?: TicketStatus): Promise<Ticket[]> {
+  async findAll(status?: TicketStatus): Promise<TicketSelect[]> {
     return db
       .select()
       .from(tickets)
@@ -13,7 +13,7 @@ export const ticketService = {
       .orderBy(asc(tickets.position));
   },
 
-  async create(input: CreateTicketInput): Promise<Ticket> {
+  async create(input: CreateTicketInput): Promise<TicketSelect> {
     return db.transaction(async (tx) => {
       await tx
         .update(tickets)

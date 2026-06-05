@@ -8,6 +8,13 @@
       "when": 1780675111065,
       "tag": "0000_amazing_harpoon",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1780680715510,
+      "tag": "0001_sweet_molecule_man",
+      "breakpoints": true
     }
   ]
 }
