@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python \"d:\\\\Git\\\\Claude-Code-Expert\\\\hello_world.py\")"
+    ]
+  }
+}
