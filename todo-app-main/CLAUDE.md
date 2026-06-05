@@ -51,6 +51,7 @@ PRD.md  (최상위 — 기능 범위·사용자 시나리오)
 
 | 문서 | 경로 | 확인 시점 |
 |------|------|-----------|
+| **CONSTITUTION** | [docs/CONSTITUTION.md](docs/CONSTITUTION.md) | **상시** — 모든 구현의 절대 원칙 (C-001~005) |
 | PRD | [docs/PRD.md](docs/PRD.md) | 기능 범위 확인 — FR-001~008, 2차 제외 목록 |
 | TRD | [docs/TRD.md](docs/TRD.md) | 아키텍처·스택·계층 경계 확인 |
 | API_SPEC | [docs/API_SPEC.md](docs/API_SPEC.md) | API 구현 전 — 에러 코드·응답 형식·Zod 스키마 |
