@@ -12,18 +12,3 @@ export const TICKET_PRIORITY = {
   HIGH: 'HIGH',
 } as const;
 export type TicketPriority = (typeof TICKET_PRIORITY)[keyof typeof TICKET_PRIORITY];
-
-export interface Ticket {
-  id: number;
-  title: string;
-  description: string | null;
-  status: TicketStatus;
-  priority: TicketPriority;
-  position: number;
-  plannedStartDate: string | null;
-  dueDate: string | null;
-  startedAt: Date | null;
-  completedAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-}

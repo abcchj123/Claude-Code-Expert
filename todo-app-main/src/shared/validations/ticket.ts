@@ -1,15 +1,13 @@
 import { z } from 'zod';
-import { TICKET_PRIORITY } from '../types';
+import { TICKET_PRIORITY, TICKET_STATUS } from '../types';
 
-const dateString = z
+const dateBase = z
   .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, { message: '날짜 형식은 YYYY-MM-DD이어야 합니다' })
-  .nullable()
-  .optional();
+  .regex(/^\d{4}-\d{2}-\d{2}$/, { message: '날짜 형식은 YYYY-MM-DD이어야 합니다' });
 
-const futureDateString = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, { message: '날짜 형식은 YYYY-MM-DD이어야 합니다' })
+const dateString = dateBase.nullable().optional();
+
+const futureDateString = dateBase
   .refine(
     (val) => new Date(val) >= new Date(new Date().toISOString().slice(0, 10)),
     { message: '종료예정일은 오늘 이후여야합니다.' }
@@ -33,3 +31,14 @@ export const createTicketSchema = z.object({
 });
 
 export type CreateTicketInput = z.infer<typeof createTicketSchema>;
+
+export const getTicketsSchema = z.object({
+  status: z
+    .enum(
+      [TICKET_STATUS.BACKLOG, TICKET_STATUS.TODO, TICKET_STATUS.IN_PROGRESS, TICKET_STATUS.DONE],
+      { errorMap: () => ({ message: '유효하지 않은 status 값입니다' }) }
+    )
+    .optional(),
+});
+
+export type GetTicketsInput = z.infer<typeof getTicketsSchema>;
