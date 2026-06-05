@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TICKET_PRIORITY, TICKET_STATUS } from '../types';
+import { TICKET_PRIORITY, TICKET_STATUS } from '../constants/columns';
 
 const dateBase = z
   .string()

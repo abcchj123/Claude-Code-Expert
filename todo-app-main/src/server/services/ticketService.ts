@@ -1,7 +1,7 @@
 import { asc, eq, sql } from 'drizzle-orm';
 import { db } from '../db';
 import { tickets, type Ticket } from '../db/schema';
-import { TICKET_PRIORITY, TICKET_STATUS, type TicketStatus } from '@/shared/types';
+import { TICKET_PRIORITY, TICKET_STATUS, type TicketStatus } from '@/shared/constants/columns';
 import type { CreateTicketInput } from '@/shared/validations/ticket';
 
 export const ticketService = {
