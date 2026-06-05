@@ -1,363 +1,153 @@
-# CONSTITUTION — Tika
+# Tika Constitution
 
-> **개발 원칙 헌법 (Constitution)**
-> 버전: v0.1.0 · 작성일: 2026-06-06
-> 상위 문서: [PRD.md](./PRD.md) · [TRD.md](./TRD.md) · [API_SPEC.md](./API_SPEC.md)
+## Core Principles
 
-이 문서는 Tika 코드베이스의 **절대 원칙**이다.
-모든 구현·리뷰·리팩토링은 아래 원칙을 기준으로 판단한다.
-원칙과 충돌하는 코드는 병합하지 않는다.
+### I. Specification-Driven Development (SDD)
+모든 구현은 명세를 기반으로 하며, 명세는 구현보다 우선한다.
+- **Why**: 명세 없는 구현은 불확실성을 야기하고 팀 간 혼선을 초래한다.
+- **원칙**: 명세와 구현이 불일치하면 명세를 먼저 수정한 후 구현을 변경한다.
 
----
+### II. Type Safety (NON-NEGOTIABLE)
+타입 안전성은 협상 불가능한 필수 요구사항이다.
+- **Why**: 런타임 에러의 대부분은 타입 문제에서 발생한다. 컴파일 시점에 잡는 것이 비용이 가장 적다.
+- **원칙**: TypeScript strict 모드, any 타입 절대 금지, 타입 체크 통과 없이는 커밋 불가.
 
-## 원칙 목록
+### III. Contract-First API Design
+API는 명확한 계약을 기반으로 설계되고 구현된다.
+- **Why**: 프런트엔드-백엔드 간 인터페이스 불일치는 통합 단계에서 큰 비용을 발생시킨다.
+- **원칙**: API_SPEC.md에 정의된 요청/응답 형식을 정확히 준수한다.
 
-| ID | 원칙 | 위반 시 결과 |
-|----|------|-------------|
-| C-001 | TypeScript strict 모드 필수 | 빌드 거부 |
-| C-002 | API 응답은 API_SPEC.md 형식 정확히 준수 | 테스트 실패 |
-| C-003 | 에러 응답은 `{ error: { code, message } }` 형식 통일 | 테스트 실패 |
-| C-004 | 모든 요청은 Zod로 검증 | 코드 리뷰 거부 |
-| C-005 | 비즈니스 로직은 `src/server/services/`에만 작성 | 코드 리뷰 거부 |
+### IV. Validated Inputs, Safe Outputs
+모든 외부 입력은 검증되고, 모든 출력은 안전해야 한다.
+- **Why**: 신뢰할 수 없는 입력은 보안 취약점과 런타임 에러의 주요 원인이다.
+- **원칙**: Zod를 통한 입력 검증, 타입 안전한 출력 보장.
 
----
+### V. Separation of Concerns
+각 계층은 명확한 책임을 갖고, 계층 간 경계를 넘지 않는다.
+- **Why**: 책임이 혼재된 코드는 테스트, 유지보수, 확장이 어렵다.
+- **원칙**: 비즈니스 로직은 서비스 레이어에, 프레젠테이션 로직은 UI 레이어에 집중.
 
-## C-001 · TypeScript strict 모드 필수
+### VI. Test-Driven Development (TDD)
+테스트는 구현 이후가 아닌 이전에 작성된다.
+- **Why**: 사후 테스트는 구현에 맞춰 작성되어 실제 요구사항 검증에 실패한다.
+- **원칙**: Red-Green-Refactor 사이클을 엄격히 준수한다.
 
-### 규칙
+### VII. Documentation First (NON-NEGOTIABLE)
+모든 구현 결정은 공식 문서를 우선 참조한다.
+- **Why**: 추측이나 오래된 지식은 잘못된 구현으로 이어지고, 시간 낭비와 재작업을 초래한다.
+- **원칙**: 불확실한 사항은 공식 문서를 먼저 확인하고, 문서가 없으면 사용자에게 확인한다.
+- **적용**:
+  - Claude Code 기능/구조 → https://code.claude.com/docs 필수 참조
+  - 프레임워크/라이브러리 → 최신 공식 문서 우선
+  - 내부 규칙 → constitution.md → CLAUDE.md 순서로 참조
+  - **추측 금지**: 확신이 없으면 반드시 문서를 찾아 확인
 
-`tsconfig.json`의 `"strict": true`를 항상 유지한다.
-`any` 타입, 타입 단언(`as any`, `as unknown`), `@ts-ignore`는 원칙적으로 금지한다.
+## 🚨 Guardrails (절대 준수 사항)
 
-### 세부 설정 (tsconfig.json 기준)
+AI 코딩 에이전트가 실수로 위험한 작업을 수행하지 않도록 명시적으로 금지하는 규칙들이다.
+**이 규칙들은 어떤 상황에서도 위반할 수 없다.**
 
-```json
-{
-  "compilerOptions": {
-    "strict": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true
-  }
-}
-```
+### 데이터베이스 금지 명령어
+- `DROP TABLE`, `DROP DATABASE` — 절대 금지
+- `TRUNCATE` — 절대 금지
+- `DELETE FROM` (WHERE 절 없이) — 절대 금지
+- `ALTER TABLE DROP COLUMN` — 사용자 명시적 허가 필요
 
-### 허용 패턴
+### 데이터베이스 안전 규칙
+- 삭제/리셋 작업 시 반드시 사용자 승인 요청
+- 삭제 전 백업 또는 복구 방법 안내
+- 테스트 데이터 존재 시 DB 리셋 대신 SQL로 해결
+- 운영 DB 자동 변경 절대 금지
 
-```typescript
-// ✅ const 객체 + keyof 타입 추론
-export const TICKET_STATUS = {
-  BACKLOG: 'BACKLOG',
-  TODO: 'TODO',
-  IN_PROGRESS: 'IN_PROGRESS',
-  DONE: 'DONE',
-} as const;
-export type TicketStatus = (typeof TICKET_STATUS)[keyof typeof TICKET_STATUS];
+### Git 금지 명령어
+- `git push --force` — 절대 금지
+- `git reset --hard` — 절대 금지
+- `git clean -fd` — 사용자 확인 필요
+- `git branch -D` (main/master) — 절대 금지
 
-// ✅ Drizzle $inferSelect — 스키마 변경 시 타입 자동 동기화
-export type TicketSelect = typeof tickets.$inferSelect;
-export type TicketInsert = typeof tickets.$inferInsert;
+### 패키지 관리 금지 명령어
+- `npm audit fix --force` — 절대 금지
+- `rm -rf node_modules && npm install` — 사용자 확인 필요
+- 메이저 버전 자동 업그레이드 — 절대 금지
 
-// ✅ Zod infer — 스키마와 타입을 한 곳에서 관리
-export type CreateTicketInput = z.infer<typeof createTicketSchema>;
-```
+### 파일 시스템 금지 명령어
+- `rm -rf /` 또는 루트 경로 삭제 — 절대 금지
+- 프로젝트 외부 파일 수정 — 절대 금지
+- `.env` 파일 삭제 — 사용자 확인 필요
+- `src/` 디렉토리 전체 삭제 — 절대 금지
 
-### 금지 패턴
+### 안전 작업 원칙
+- 파괴적 작업(삭제, 초기화) 전 반드시 사용자 확인
+- 복구 불가능한 작업은 백업 방법 먼저 안내
+- 자동화된 스크립트의 파괴적 명령 실행 금지
+- 의심스러운 작업은 실행 전 사용자에게 설명 및 확인
 
-```typescript
-// ❌
-let data: any;
-const result = value as any;
-// @ts-ignore
-const ticket = obj as Ticket;
-enum Status { BACKLOG, TODO }    // enum 금지 → const 객체 사용
-interface ITicket { ... }        // I 접두사 금지
-```
+## Architecture Constraints
 
-### 검증 명령어
+### Immutable Boundaries
+시스템 경계는 명확하고 불변이다.
+- Frontend (`src/client/`) ↔ Backend (`src/server/`) 직접 참조 금지
+- Shared (`src/shared/`)만 양방향 참조 가능
+- 경계를 넘는 모든 통신은 명세된 API를 통해서만
 
-```bash
-npx tsc --noEmit   # 에러 0개 유지
-```
+### Single Source of Truth
+각 관심사는 단 하나의 정의 위치를 갖는다.
+- 타입: `src/shared/types/`
+- 검증 스키마: `src/shared/validations/`
+- 비즈니스 로직: `src/server/services/`
+- DB 스키마: `src/server/db/schema.ts`
 
----
+### No Direct Database Access from Frontend
+프런트엔드는 데이터베이스에 직접 접근할 수 없다.
+- **Why**: 보안, 비즈니스 로직 중복, 트랜잭션 관리 문제
+- **원칙**: 모든 데이터 접근은 API를 통해서만
 
-## C-002 · API 응답은 API_SPEC.md 형식 정확히 준수
+## Quality Standards
 
-### 규칙
+### Non-Negotiable Quality Gates
+다음 검증을 통과하지 못하면 커밋할 수 없다.
+1. TypeScript 타입 체크 통과
+2. 모든 테스트 통과
+3. 빌드 성공
+4. 명세 문서와 일치
 
-모든 API 엔드포인트의 응답 구조·필드명·타입·HTTP 상태코드는
-[docs/API_SPEC.md](./API_SPEC.md)를 단일 소스로 삼는다.
-명세와 다른 응답을 반환하면 안 된다.
+### Security Requirements
+- 환경 변수에 민감 정보 저장, 코드에 하드코딩 금지
+- SQL Injection 방지: ORM 파라미터 바인딩만 사용
+- XSS 방지: 모든 입력 검증 + React 자동 이스케이핑
+- 에러 메시지에 내부 구현 상세 노출 금지
 
-### HTTP 상태코드 규칙
+## Governance
 
-| 상황 | 상태코드 |
-|------|---------|
-| GET · PATCH 성공 | `200` |
-| POST 성공 (생성) | `201` |
-| DELETE 성공 | `204` (본문 없음) |
-| 검증 실패 | `400` |
-| 리소스 없음 | `404` |
-| 서버 오류 | `500` |
+### Constitution Authority
+이 Constitution은 모든 다른 개발 관행, 가이드, 제안보다 우선한다.
 
-### 응답 형식
+### Amendment Process
+Constitution 수정은 다음 절차를 따른다:
+1. 변경 제안 (이유, 영향 범위, 대안 분석 포함)
+2. 팀 전체 검토 및 논의
+3. 합의 도출
+4. 영향받는 코드의 마이그레이션 계획 수립
+5. 문서화 및 승인
+6. 버전 업데이트
 
-```typescript
-// ✅ 단건 반환 (data 래퍼 없음)
-return Response.json(ticket, { status: 200 });
+### Response Result  
+응답 결과는 한글로 설명한다. 
 
-// ✅ 목록 반환 (배열 직접 반환)
-return Response.json(tickets, { status: 200 });
+### Enforcement
+- 모든 PR은 Constitution 준수 여부 검증 필수
+- 위반 사항 발견 시 즉시 수정
+- 예외 허용 시 문서화 및 제한적 범위 명시
 
-// ✅ 삭제 성공 (본문 없음)
-return new Response(null, { status: 204 });
+### Living Document
+- Constitution은 프로젝트 진화에 따라 성장한다
+- 하지만 핵심 원칙(Core Principles)은 신중히 변경한다
+- 실무 세부사항은 CLAUDE.md에 위임
 
-// ❌ data 래퍼 사용 금지
-return Response.json({ data: ticket }, { status: 200 });
-
-// ❌ 상태코드 누락
-return Response.json(ticket);
-```
-
-### Ticket 공통 응답 필드
-
-API_SPEC.md §1-8의 `TicketResponse` 인터페이스를 따른다.
-필드 추가·제거·이름 변경은 API_SPEC.md를 먼저 수정하고 구현한다.
-
----
-
-## C-003 · 에러 응답은 `{ error: { code, message } }` 형식 통일
-
-### 규칙
-
-모든 에러 응답은 단일 형식을 사용한다. 예외 없음.
-
-### 표준 에러 형식
-
-```typescript
-interface ErrorResponse {
-  error: {
-    code: string;    // 대문자_스네이크_케이스 (머신 리더블)
-    message: string; // 한국어 (사람 리더블)
-  };
-}
-```
-
-### 에러 코드 목록
-
-| HTTP | `error.code` | 발생 상황 |
-|------|--------------|-----------|
-| 400 | `VALIDATION_ERROR` | Zod 검증 실패 |
-| 404 | `TICKET_NOT_FOUND` | 존재하지 않는 티켓 ID |
-| 500 | `INTERNAL_ERROR` | 예상치 못한 서버 오류 |
-
-### 검증 에러 메시지 (API_SPEC.md §1-6 기준, 한국어 고정)
-
-| 조건 | `error.message` |
-|------|-----------------|
-| `title` 누락·빈 문자열 | `"제목을 입력해주세요"` |
-| `title` 200자 초과 | `"제목은 200자 이내로 입력해주세요."` |
-| `dueDate` 오늘 이전 | `"종료예정일은 오늘 이후여야합니다."` |
-| `priority` 잘못된 값 | `"우선순위는 LOW, MEDIUM, HIGH 중 하나여야 합니다."` |
-
-### 허용 패턴
-
-```typescript
-// ✅
-return Response.json(
-  { error: { code: 'VALIDATION_ERROR', message: '제목을 입력해주세요' } },
-  { status: 400 }
-);
-
-return Response.json(
-  { error: { code: 'TICKET_NOT_FOUND', message: '티켓을 찾을 수 없습니다' } },
-  { status: 404 }
-);
-```
-
-### 금지 패턴
-
-```typescript
-// ❌ 형식 불일치
-return Response.json({ message: 'Not found' }, { status: 404 });
-return Response.json({ error: 'Not found' }, { status: 404 });
-return Response.json('error', { status: 400 });
-```
+**실무 개발 가이드는 CLAUDE.md 참조**
 
 ---
 
-## C-004 · 모든 요청은 Zod로 검증
-
-### 규칙
-
-Route Handler가 외부로부터 받는 모든 입력(body, query params, path params)은
-Zod 스키마로 검증한 후 사용한다.
-검증 없이 `request.json()` 결과를 직접 사용하면 안 된다.
-
-### 스키마 위치
-
-```
-src/shared/validations/ticket.ts   # 모든 티켓 관련 Zod 스키마
-```
-
-프런트엔드 폼 검증과 백엔드 Route Handler 검증이 동일한 스키마를 재사용한다.
-
-### 허용 패턴
-
-```typescript
-// ✅ safeParse로 검증 후 사용
-export async function POST(request: Request) {
-  const body = await request.json();
-  const result = createTicketSchema.safeParse(body);
-  if (!result.success) {
-    return Response.json(
-      { error: { code: 'VALIDATION_ERROR', message: result.error.errors[0]?.message } },
-      { status: 400 }
-    );
-  }
-  // result.data는 타입 안전 — 이후 로직에서 안심하고 사용
-  const ticket = await ticketService.create(result.data);
-  return Response.json(ticket, { status: 201 });
-}
-
-// ✅ query params 검증
-const result = getTicketsSchema.safeParse({ status: searchParams.get('status') });
-```
-
-### 금지 패턴
-
-```typescript
-// ❌ 검증 없이 직접 사용
-const body = await request.json();
-const ticket = await ticketService.create(body);  // body 타입 unknown
-
-// ❌ parse() 사용 (예외 던짐 — 표준 에러 형식 깨짐)
-const data = createTicketSchema.parse(body);
-
-// ❌ 타입 단언으로 검증 우회
-const data = body as CreateTicketInput;
-```
-
-### Zod 스키마 컨벤션
-
-```typescript
-// ✅ errorMap으로 한국어 메시지 고정
-export const createTicketSchema = z.object({
-  title: z
-    .string({ required_error: '제목을 입력해주세요' })
-    .min(1, '제목을 입력해주세요')
-    .max(200, '제목은 200자 이내로 입력해주세요.'),
-  priority: z
-    .enum(['LOW', 'MEDIUM', 'HIGH'], {
-      errorMap: () => ({ message: '우선순위는 LOW, MEDIUM, HIGH 중 하나여야 합니다.' }),
-    })
-    .optional(),
-});
-
-// ✅ infer로 타입 자동 생성
-export type CreateTicketInput = z.infer<typeof createTicketSchema>;
-```
-
----
-
-## C-005 · 비즈니스 로직은 `src/server/services/`에만 작성
-
-### 규칙
-
-비즈니스 로직(position 계산, 날짜 자동 설정, 상태 전환 규칙, 트랜잭션)은
-`src/server/services/ticketService.ts`에만 작성한다.
-Route Handler, 컴포넌트, 훅에 비즈니스 로직을 작성하면 안 된다.
-
-### 계층별 책임
-
-| 계층 | 책임 | 금지 |
-|------|------|------|
-| Route Handler (`app/api/`) | 요청 파싱, Zod 검증, 서비스 호출, 응답 반환 | DB 직접 접근, 비즈니스 로직 |
-| Service (`src/server/services/`) | 비즈니스 로직, 트랜잭션, position 계산 | HTTP 응답 생성, `Response` 객체 |
-| DB (`src/server/db/`) | Drizzle 인스턴스, 스키마 정의 | 비즈니스 로직 |
-| Client (`src/client/`) | UI 렌더링, 사용자 인터랙션 | `src/server/` 직접 import |
-
-### 허용 패턴
-
-```typescript
-// ✅ ticketService — 비즈니스 로직 전담
-export const ticketService = {
-  async create(input: CreateTicketInput): Promise<TicketSelect> {
-    return db.transaction(async (tx) => {
-      // BR-001: 기존 BACKLOG position + 1 재계산
-      await tx
-        .update(tickets)
-        .set({ position: sql`${tickets.position} + 1` })
-        .where(eq(tickets.status, TICKET_STATUS.BACKLOG));
-
-      const [ticket] = await tx
-        .insert(tickets)
-        .values({ ...input, status: TICKET_STATUS.BACKLOG, position: 1 })
-        .returning();
-      return ticket!;
-    });
-  },
-};
-
-// ✅ Route Handler — 얇게(thin)
-export async function POST(request: Request) {
-  const body = await request.json();
-  const result = createTicketSchema.safeParse(body);
-  if (!result.success) {
-    return Response.json(
-      { error: { code: 'VALIDATION_ERROR', message: result.error.errors[0]?.message } },
-      { status: 400 }
-    );
-  }
-  const ticket = await ticketService.create(result.data);  // 서비스에 위임
-  return Response.json(ticket, { status: 201 });
-}
-```
-
-### 금지 패턴
-
-```typescript
-// ❌ Route Handler에 비즈니스 로직
-export async function POST(request: Request) {
-  const body = await request.json();
-  // position 계산 — Route Handler에 있으면 안 됨
-  const count = await db.select({ count: sql`COUNT(*)` }).from(tickets);
-  const position = Number(count[0]?.count ?? 0) + 1;
-  const ticket = await db.insert(tickets).values({ ...body, position }).returning();
-  return Response.json(ticket[0], { status: 201 });
-}
-
-// ❌ 클라이언트에서 서버 모듈 import
-import { ticketService } from '@/server/services/ticketService';  // Client Component에서 금지
-import { db } from '@/server/db';                                 // Client Component에서 금지
-```
-
----
-
-## 원칙 준수 체크리스트
-
-구현 완료 후 아래를 확인한다.
-
-```bash
-# C-001: TypeScript strict
-npx tsc --noEmit
-
-# C-002 ~ C-005: 테스트
-npm run test           # Jest 전체
-npm run test:vitest    # Vitest 전체
-
-# 빌드 성공 확인
-npm run build
-```
-
-| 체크 | 항목 |
-|------|------|
-| ☐ | `tsc --noEmit` 에러 0개 |
-| ☐ | 전체 테스트 통과 |
-| ☐ | `any` 타입 없음 |
-| ☐ | 에러 응답이 `{ error: { code, message } }` 형식 |
-| ☐ | Route Handler에서 `safeParse` 사용 확인 |
-| ☐ | 비즈니스 로직이 `src/server/services/`에만 존재 |
-| ☐ | API 응답 구조가 API_SPEC.md와 일치 |
+**Version**: 1.0.0
+**Ratified**: 2026-02-13
+**Last Amended**: 2026-02-13
