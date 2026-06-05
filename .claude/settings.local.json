@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python \"d:\\\\Git\\\\Claude-Code-Expert\\\\hello_world.py\")"
+      "Bash(python \"d:\\\\Git\\\\Claude-Code-Expert\\\\hello_world.py\")",
+      "Bash(mkdir -p d:/Git/Claude-Code-Expert/todo-app-main/app/api/tickets/[id]/complete)",
+      "Bash(touch d:/Git/Claude-Code-Expert/todo-app-main/app/api/tickets/[id]/complete/.gitkeep)",
+      "Bash(npm install *)",
+      "PowerShell($env:PATH -split ';')",
+      "PowerShell(node --version)",
+      "PowerShell(npm --version)"
     ]
   }
 }
