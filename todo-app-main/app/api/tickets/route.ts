@@ -25,7 +25,9 @@ export async function GET(request: Request) {
       return validationError(result.error.errors[0]?.message);
     }
 
-    const list = await ticketService.findAll(result.data.status);
+    const list = result.data.status
+      ? await ticketService.findAll(result.data.status)
+      : await ticketService.getBoard();
     return Response.json(list, { status: 200 });
   } catch {
     return internalError();

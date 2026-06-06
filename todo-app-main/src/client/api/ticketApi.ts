@@ -15,10 +15,11 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export const ticketApi = {
-  list:   ()                                  => request<Ticket[]>(`${BASE}`),
-  get:    (id: number)                        => request<Ticket>(`${BASE}/${id}`),
-  create: (input: CreateTicketInput)          => request<Ticket>(`${BASE}`, { method: 'POST',  body: JSON.stringify(input) }),
-  update: (id: number, input: UpdateTicketInput) => request<Ticket>(`${BASE}/${id}`, { method: 'PATCH', body: JSON.stringify(input) }),
-  delete: (id: number)                        => request<void>(`${BASE}/${id}`, { method: 'DELETE' }),
-  move:   (id: number, input: MoveTicketInput)   => request<Ticket>(`${BASE}/${id}/move`, { method: 'PATCH', body: JSON.stringify(input) }),
+  getBoard: ()                                      => request<Ticket[]>(`${BASE}`),
+  get:      (id: number)                            => request<Ticket>(`${BASE}/${id}`),
+  create:   (input: CreateTicketInput)              => request<Ticket>(`${BASE}`, { method: 'POST',   body: JSON.stringify(input) }),
+  update:   (id: number, input: UpdateTicketInput)  => request<Ticket>(`${BASE}/${id}`, { method: 'PATCH',  body: JSON.stringify(input) }),
+  remove:   (id: number)                            => request<void>(`${BASE}/${id}`, { method: 'DELETE' }),
+  reorder:  (id: number, input: MoveTicketInput)    => request<Ticket>(`${BASE}/${id}/move`, { method: 'PATCH',  body: JSON.stringify(input) }),
+  complete: (id: number)                            => request<Ticket>(`${BASE}/${id}/move`, { method: 'PATCH',  body: JSON.stringify({ status: 'DONE', position: 1 }) }),
 };

@@ -2,7 +2,20 @@ import { and, asc, eq, gt, gte, lt, lte, ne, sql } from 'drizzle-orm';
 import { db } from '../db';
 import { tickets, type TicketSelect } from '../db/schema';
 import { TICKET_PRIORITY, TICKET_STATUS, type TicketStatus } from '@/shared/constants/columns';
+import type { Ticket } from '@/shared/types';
 import type { CreateTicketInput, MoveTicketInput, UpdateTicketInput } from '@/shared/validations/ticket';
+
+function toTicket(row: TicketSelect): Ticket {
+  return {
+    ...row,
+    status:      row.status as Ticket['status'],
+    priority:    row.priority as Ticket['priority'],
+    createdAt:   row.createdAt.toISOString(),
+    updatedAt:   row.updatedAt.toISOString(),
+    startedAt:   row.startedAt?.toISOString() ?? null,
+    completedAt: row.completedAt?.toISOString() ?? null,
+  };
+}
 
 export const ticketService = {
   async findAll(status?: TicketStatus): Promise<TicketSelect[]> {
@@ -11,6 +24,19 @@ export const ticketService = {
       .from(tickets)
       .where(status ? eq(tickets.status, status) : undefined)
       .orderBy(asc(tickets.position));
+  },
+
+  async getBoard(): Promise<Ticket[]> {
+    const doneVisibleAfter = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const rows = await db
+      .select()
+      .from(tickets)
+      .where(
+        sql`${tickets.status} <> ${TICKET_STATUS.DONE} OR ${tickets.completedAt} IS NULL OR ${tickets.completedAt} >= ${doneVisibleAfter}`,
+      )
+      .orderBy(asc(tickets.position));
+
+    return rows.map(toTicket);
   },
 
   async findById(id: number): Promise<TicketSelect | null> {

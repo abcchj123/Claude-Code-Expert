@@ -6,6 +6,7 @@ import {
   type DragStartEvent,
   type SensorDescriptor,
   type SensorOptions,
+  type UniqueIdentifier,
   PointerSensor,
   useSensor,
   useSensors,
@@ -32,8 +33,12 @@ export function useDragDrop({ tickets, onMove }: UseDragDropOptions): {
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
 
+  function findTicket(id: UniqueIdentifier) {
+    return tickets.find((ticket) => String(ticket.id) === String(id));
+  }
+
   function handleDragStart({ active }: DragStartEvent) {
-    const ticket = tickets.find((t) => t.id === active.id);
+    const ticket = findTicket(active.id);
     setActiveTicket(ticket ?? null);
   }
 
@@ -45,7 +50,7 @@ export function useDragDrop({ tickets, onMove }: UseDragDropOptions): {
     setActiveTicket(null);
     if (!over) return;
 
-    const dragged = tickets.find((t) => t.id === active.id);
+    const dragged = findTicket(active.id);
     if (!dragged) return;
 
     // over.id is either a column id (TicketStatus) or a ticket id (number)
@@ -62,8 +67,8 @@ export function useDragDrop({ tickets, onMove }: UseDragDropOptions): {
         .sort((a, b) => a.position - b.position);
       targetPosition = colTickets.length + 1;
     } else {
-      const overTicket = tickets.find((t) => t.id === overId);
-      if (!overTicket) return;
+      const overTicket = findTicket(overId);
+      if (!overTicket || overTicket.id === dragged.id) return;
       targetStatus   = overTicket.status as TicketStatus;
       targetPosition = overTicket.position;
     }

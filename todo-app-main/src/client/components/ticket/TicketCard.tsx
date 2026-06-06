@@ -52,10 +52,10 @@ export function TicketCard({ ticket, onEdit, onDelete, onClick }: TicketCardProp
         onKeyDown={handleKeyDown}
         onMouseEnter={() => setShowActions(true)}
         onMouseLeave={() => setShowActions(false)}
+        {...listeners}
       >
         <div className="flex items-start gap-2">
           <span
-            {...listeners}
             className="mt-0.5 cursor-grab select-none text-[var(--color-text-secondary)] active:cursor-grabbing"
           >
             ≡
@@ -81,12 +81,14 @@ export function TicketCard({ ticket, onEdit, onDelete, onClick }: TicketCardProp
           {showActions && (
             <div className="flex shrink-0 flex-col gap-1">
               <button
+                onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => { e.stopPropagation(); onEdit(ticket.id); }}
                 className="rounded px-2 py-0.5 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]"
               >
                 수정
               </button>
               <button
+                onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => { e.stopPropagation(); setDeleteConfirm(true); }}
                 className="rounded px-2 py-0.5 text-xs text-[var(--color-priority-high)] hover:bg-[var(--color-border)]"
               >

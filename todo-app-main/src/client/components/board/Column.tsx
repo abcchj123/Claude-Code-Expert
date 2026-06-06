@@ -33,13 +33,14 @@ interface ColumnProps {
 }
 
 export function Column({ status, tickets, onTicketEdit, onTicketDelete, onAddTicket, isOver }: ColumnProps) {
-  const { setNodeRef } = useDroppable({ id: status });
+  const { setNodeRef, isOver: isDroppableOver } = useDroppable({ id: status });
   const ticketIds = tickets.map((t) => t.id);
+  const showDropTarget = isOver ?? isDroppableOver;
 
   return (
     <div
       ref={setNodeRef}
-      className={`flex flex-col rounded-xl border border-[var(--color-border)] p-2 transition-colors ${STATUS_BG[status]}${isOver ? ' is-over' : ''}`}
+      className={`flex flex-col rounded-xl border border-[var(--color-border)] p-2 transition-colors ${STATUS_BG[status]}${showDropTarget ? ' is-over' : ''}`}
     >
       <ColumnHeader title={COLUMN_LABELS[status]} count={tickets.length} />
       <SortableContext items={ticketIds} strategy={verticalListSortingStrategy}>
