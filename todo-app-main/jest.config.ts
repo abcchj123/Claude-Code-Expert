@@ -15,7 +15,10 @@ const config: Config = {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
 
-  testMatch: ['<rootDir>/__tests__/**/*.test.{ts,tsx}'],
+  testMatch: [
+    '<rootDir>/__tests__/**/*.test.{ts,tsx}',
+    '<rootDir>/src/**/*.test.{ts,tsx}',
+  ],
 
   // DB 커넥션 등 열린 핸들로 인한 무한 대기 방지
   forceExit: true,

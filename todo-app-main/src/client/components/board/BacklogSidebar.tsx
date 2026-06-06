@@ -23,21 +23,25 @@ export function BacklogSidebar({ tickets, onTicketEdit, onTicketDelete, onAddTic
   return (
     <aside
       ref={setNodeRef}
-      className={`flex w-[280px] shrink-0 flex-col rounded-xl border bg-[var(--color-surface)] p-2 transition-colors ${
-        isOver ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/5' : 'border-[var(--color-border)]'
-      }`}
+      className={`flex w-[280px] shrink-0 flex-col rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-2 transition-colors${isOver ? ' is-over' : ''}`}
     >
       <ColumnHeader title="Backlog" count={tickets.length} />
       <SortableContext items={ticketIds} strategy={verticalListSortingStrategy}>
         <div className="flex flex-1 flex-col gap-2 overflow-y-auto py-1">
-          {tickets.map((t) => (
-            <TicketCard
-              key={t.id}
-              ticket={withMeta(t)}
-              onEdit={onTicketEdit}
-              onDelete={onTicketDelete}
-            />
-          ))}
+          {tickets.length === 0 ? (
+            <p className="py-4 text-center text-xs text-[var(--color-text-placeholder)]">
+              백로그에 티켓이 없습니다
+            </p>
+          ) : (
+            tickets.map((t) => (
+              <TicketCard
+                key={t.id}
+                ticket={withMeta(t)}
+                onEdit={onTicketEdit}
+                onDelete={onTicketDelete}
+              />
+            ))
+          )}
         </div>
       </SortableContext>
       <AddTicketButton onClick={onAddTicket} />

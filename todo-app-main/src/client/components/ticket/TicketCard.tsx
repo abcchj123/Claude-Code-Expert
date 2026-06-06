@@ -4,17 +4,17 @@ import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ConfirmDialog } from '@/client/components/ui/ConfirmDialog';
-import { DateRow } from '@/client/components/ui/DateRow';
-import { PriorityBadge } from '@/client/components/ui/PriorityBadge';
+import { PriorityBadge, DueDateBadge } from '@/client/components/ui/Badge';
 import type { TicketWithMeta } from '@/shared/types';
 
 interface TicketCardProps {
   ticket:   TicketWithMeta;
   onEdit:   (id: number) => void;
   onDelete: (id: number) => void;
+  onClick?: () => void;
 }
 
-export function TicketCard({ ticket, onEdit, onDelete }: TicketCardProps) {
+export function TicketCard({ ticket, onEdit, onDelete, onClick }: TicketCardProps) {
   const [showActions,   setShowActions]   = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
 
@@ -30,17 +30,28 @@ export function TicketCard({ ticket, onEdit, onDelete }: TicketCardProps) {
 
   const isCompleted = ticket.status === 'DONE';
 
+  function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onClick?.();
+    }
+  }
+
   return (
     <>
       <div
         ref={setNodeRef}
         style={style}
         {...attributes}
+        role="button"
+        tabIndex={0}
+        aria-label={ticket.title}
+        data-overdue={ticket.isOverdue ? 'true' : undefined}
+        className={`ticket-card${isCompleted ? ' ticket-card-done' : ''}`}
+        onClick={onClick}
+        onKeyDown={handleKeyDown}
         onMouseEnter={() => setShowActions(true)}
         onMouseLeave={() => setShowActions(false)}
-        className={`relative rounded-lg border bg-[var(--color-surface)] p-3 shadow-sm ${
-          ticket.isOverdue ? 'border-[var(--color-overdue)]' : 'border-[var(--color-border)]'
-        }`}
       >
         <div className="flex items-start gap-2">
           <span
@@ -50,13 +61,7 @@ export function TicketCard({ ticket, onEdit, onDelete }: TicketCardProps) {
             ≡
           </span>
           <div className="min-w-0 flex-1">
-            <h3
-              className={`line-clamp-2 text-sm font-medium ${
-                isCompleted
-                  ? 'text-[var(--color-text-secondary)] line-through'
-                  : 'text-[var(--color-text-primary)]'
-              }`}
-            >
+            <h3 className="ticket-title line-clamp-2 text-sm font-medium text-[var(--color-text-primary)]">
               {ticket.title}
             </h3>
             {ticket.description && (
@@ -66,7 +71,7 @@ export function TicketCard({ ticket, onEdit, onDelete }: TicketCardProps) {
             )}
             <div className="mt-2 flex items-center gap-2">
               <PriorityBadge priority={ticket.priority} />
-              <DateRow
+              <DueDateBadge
                 plannedStartDate={ticket.plannedStartDate}
                 dueDate={ticket.dueDate}
                 isOverdue={ticket.isOverdue}
@@ -76,13 +81,13 @@ export function TicketCard({ ticket, onEdit, onDelete }: TicketCardProps) {
           {showActions && (
             <div className="flex shrink-0 flex-col gap-1">
               <button
-                onClick={() => onEdit(ticket.id)}
+                onClick={(e) => { e.stopPropagation(); onEdit(ticket.id); }}
                 className="rounded px-2 py-0.5 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]"
               >
                 수정
               </button>
               <button
-                onClick={() => setDeleteConfirm(true)}
+                onClick={(e) => { e.stopPropagation(); setDeleteConfirm(true); }}
                 className="rounded px-2 py-0.5 text-xs text-[var(--color-priority-high)] hover:bg-[var(--color-border)]"
               >
                 삭제

@@ -1,35 +1,117 @@
 'use client';
 
 import { useState } from 'react';
+import { DndContext } from '@dnd-kit/core';
+import { SortableContext } from '@dnd-kit/sortable';
+import { BacklogSidebar } from '@/client/components/board/BacklogSidebar';
+import { KanbanBoard } from '@/client/components/board/KanbanBoard';
+import { TicketCard } from '@/client/components/ticket/TicketCard';
 import { Button } from '@/client/components/ui/Button';
 import { ConfirmDialog } from '@/client/components/ui/ConfirmDialog';
 import { TicketModal } from '@/client/components/ticket/TicketModal';
+import type { Ticket, TicketWithMeta } from '@/shared/types';
+
+// ── noop ─────────────────────────────────────────────────────────────────────
+const noop = () => {};
 
 // ── Mock 데이터 ───────────────────────────────────────────────────────────────
 
-const MOCK_TICKET = {
-  id: 1,
-  title: '로그인 페이지 구현',
-  description: '이메일·비밀번호 폼과 유효성 검사를 포함한 로그인 화면을 구현한다.',
-  status: 'TODO' as const,
-  priority: 'HIGH' as const,
-  position: 1,
-  plannedStartDate: '2026-06-01',
-  dueDate: '2026-06-30',
-  startedAt: null,
-  completedAt: null,
-  createdAt: '2026-06-01T09:00:00.000Z',
-  updatedAt: '2026-06-01T09:00:00.000Z',
-};
-
-const MOCK_TICKETS = [
-  MOCK_TICKET,
-  { ...MOCK_TICKET, id: 4, title: '회원가입 API 연동', priority: 'MEDIUM' as const, position: 2 },
-  { ...MOCK_TICKET, id: 5, title: '대시보드 레이아웃', priority: 'LOW' as const, position: 3 },
+// Board 전체 목: Ticket[] (withMeta()가 isOverdue 자동 계산)
+const BOARD_MOCK: Ticket[] = [
+  // BACKLOG — 2개 (HIGH + MEDIUM)
+  {
+    id: 201, title: '데이터베이스 스키마 설계',
+    description: 'ERD 작성 및 Drizzle 마이그레이션 파일 생성',
+    status: 'BACKLOG', priority: 'HIGH', position: 1,
+    plannedStartDate: null, dueDate: null,
+    startedAt: null, completedAt: null,
+    createdAt: '2026-06-01T09:00:00.000Z', updatedAt: '2026-06-01T09:00:00.000Z',
+  },
+  {
+    id: 202, title: '배포 파이프라인 구축',
+    description: null,
+    status: 'BACKLOG', priority: 'MEDIUM', position: 2,
+    plannedStartDate: null, dueDate: null,
+    startedAt: null, completedAt: null,
+    createdAt: '2026-06-01T09:00:00.000Z', updatedAt: '2026-06-01T09:00:00.000Z',
+  },
+  // TODO — 3개 (id 203: dueDate 과거 → isOverdue=true 자동 계산)
+  {
+    id: 203, title: '로그인 페이지 구현',
+    description: '이메일·비밀번호 폼과 유효성 검사',
+    status: 'TODO', priority: 'HIGH', position: 1,
+    plannedStartDate: '2026-05-01', dueDate: '2026-05-20',
+    startedAt: '2026-05-01T09:00:00.000Z', completedAt: null,
+    createdAt: '2026-06-01T09:00:00.000Z', updatedAt: '2026-06-01T09:00:00.000Z',
+  },
+  {
+    id: 204, title: '회원가입 API 연동',
+    description: null,
+    status: 'TODO', priority: 'MEDIUM', position: 2,
+    plannedStartDate: '2026-06-01', dueDate: '2026-06-15',
+    startedAt: null, completedAt: null,
+    createdAt: '2026-06-01T09:00:00.000Z', updatedAt: '2026-06-01T09:00:00.000Z',
+  },
+  {
+    id: 205, title: '대시보드 기본 레이아웃',
+    description: null,
+    status: 'TODO', priority: 'LOW', position: 3,
+    plannedStartDate: null, dueDate: null,
+    startedAt: null, completedAt: null,
+    createdAt: '2026-06-01T09:00:00.000Z', updatedAt: '2026-06-01T09:00:00.000Z',
+  },
+  // IN_PROGRESS — 1개
+  {
+    id: 206, title: '칸반 보드 DnD 구현',
+    description: 'dnd-kit 기반 드래그 앤 드롭 기능',
+    status: 'IN_PROGRESS', priority: 'HIGH', position: 1,
+    plannedStartDate: '2026-06-03', dueDate: '2026-06-10',
+    startedAt: '2026-06-03T09:00:00.000Z', completedAt: null,
+    createdAt: '2026-06-01T09:00:00.000Z', updatedAt: '2026-06-03T09:00:00.000Z',
+  },
+  // DONE — 1개
+  {
+    id: 207, title: 'DB 마이그레이션 완료',
+    description: null,
+    status: 'DONE', priority: 'MEDIUM', position: 1,
+    plannedStartDate: '2026-05-28', dueDate: '2026-05-31',
+    startedAt: '2026-05-28T09:00:00.000Z', completedAt: '2026-05-31T09:00:00.000Z',
+    createdAt: '2026-06-01T09:00:00.000Z', updatedAt: '2026-05-31T09:00:00.000Z',
+  },
 ];
 
+// TicketCard 개별 프리뷰용: TicketWithMeta (isOverdue 수동 지정)
+const CARD_BASIC: TicketWithMeta = {
+  id: 301, title: '회원가입 API 연동',
+  description: '소셜 로그인 포함 회원가입 플로우 API 연동',
+  status: 'TODO', priority: 'MEDIUM', position: 1,
+  plannedStartDate: '2026-06-01', dueDate: '2026-06-20',
+  startedAt: null, completedAt: null,
+  createdAt: '2026-06-01T09:00:00.000Z', updatedAt: '2026-06-01T09:00:00.000Z',
+  isOverdue: false,
+};
+
+const CARD_OVERDUE: TicketWithMeta = {
+  id: 302, title: '로그인 페이지 구현',
+  description: null,
+  status: 'TODO', priority: 'HIGH', position: 2,
+  plannedStartDate: '2026-05-01', dueDate: '2026-05-20',
+  startedAt: null, completedAt: null,
+  createdAt: '2026-06-01T09:00:00.000Z', updatedAt: '2026-06-01T09:00:00.000Z',
+  isOverdue: true,
+};
+
+const CARD_DONE: TicketWithMeta = {
+  id: 303, title: 'DB 마이그레이션 완료',
+  description: null,
+  status: 'DONE', priority: 'LOW', position: 3,
+  plannedStartDate: '2026-05-28', dueDate: '2026-05-31',
+  startedAt: '2026-05-28T09:00:00.000Z', completedAt: '2026-05-31T09:00:00.000Z',
+  createdAt: '2026-06-01T09:00:00.000Z', updatedAt: '2026-05-31T09:00:00.000Z',
+  isOverdue: false,
+};
+
 // ── 인터랙티브 서브 컴포넌트 ──────────────────────────────────────────────────
-// 토글 상태(useState)가 필요한 컴포넌트는 여기서 캡슐화한다.
 
 function ConfirmDialogPreview() {
   const [open, setOpen] = useState(false);
@@ -77,6 +159,44 @@ function ModalPreview() {
   );
 }
 
+// 단일 TicketCard를 DnD 컨텍스트 안에서 렌더링
+function CardPreview({ ticket }: { ticket: TicketWithMeta }) {
+  return (
+    <DndContext>
+      <SortableContext items={[ticket.id]}>
+        <div className="p-2">
+          <TicketCard ticket={ticket} onEdit={noop} onDelete={noop} onClick={noop} />
+        </div>
+      </SortableContext>
+    </DndContext>
+  );
+}
+
+// 4컬럼 보드 레이아웃 프리뷰
+function BoardPreview() {
+  const backlogTickets = BOARD_MOCK.filter((t) => t.status === 'BACKLOG');
+  const boardTickets   = BOARD_MOCK.filter((t) => t.status !== 'BACKLOG');
+
+  return (
+    <DndContext>
+      <div className="flex h-[480px] gap-3">
+        <BacklogSidebar
+          tickets={backlogTickets}
+          onTicketEdit={noop}
+          onTicketDelete={noop}
+          onAddTicket={noop}
+        />
+        <KanbanBoard
+          tickets={boardTickets}
+          onTicketEdit={noop}
+          onTicketDelete={noop}
+          onAddTicket={noop}
+        />
+      </div>
+    </DndContext>
+  );
+}
+
 // ── 공통 헬퍼 컴포넌트 ───────────────────────────────────────────────────────
 
 type SlotStatus = 'planned' | 'done';
@@ -110,7 +230,7 @@ function PreviewSlot({ name, path, status = 'planned', width = 'md', children }:
           {status === 'done' ? '완료' : '예정'}
         </span>
       </div>
-      <div className="min-h-16 rounded-lg" style={{ background: '#F9FAFB' }}>
+      <div className="rounded-lg" style={{ background: '#F9FAFB', minHeight: '4rem' }}>
         {children ?? (
           <div className="flex h-16 items-center justify-center">
             <span className="text-xs text-gray-400">컴포넌트 미구현</span>
@@ -178,13 +298,7 @@ export default function PreviewPage() {
         title="Button"
         description="variant · size · isLoading"
       >
-        {/* Variant */}
-        <PreviewSlot
-          name="Variants"
-          path="src/client/components/ui/Button.tsx"
-          status="done"
-          width="full"
-        >
+        <PreviewSlot name="Variants" path="src/client/components/ui/Button.tsx" status="done" width="full">
           <div className="flex flex-wrap items-center gap-3 p-4">
             <Button variant="primary">Primary</Button>
             <Button variant="secondary">Secondary</Button>
@@ -193,13 +307,7 @@ export default function PreviewPage() {
           </div>
         </PreviewSlot>
 
-        {/* Size */}
-        <PreviewSlot
-          name="Sizes"
-          path="src/client/components/ui/Button.tsx"
-          status="done"
-          width="lg"
-        >
+        <PreviewSlot name="Sizes" path="src/client/components/ui/Button.tsx" status="done" width="lg">
           <div className="flex items-center gap-3 p-4">
             <Button size="sm">Small</Button>
             <Button size="md">Medium</Button>
@@ -207,13 +315,7 @@ export default function PreviewPage() {
           </div>
         </PreviewSlot>
 
-        {/* isLoading */}
-        <PreviewSlot
-          name="isLoading"
-          path="src/client/components/ui/Button.tsx"
-          status="done"
-          width="sm"
-        >
+        <PreviewSlot name="isLoading" path="src/client/components/ui/Button.tsx" status="done" width="sm">
           <div className="flex flex-col gap-2 p-4">
             <Button isLoading>저장</Button>
             <Button variant="secondary" isLoading>처리</Button>
@@ -231,7 +333,6 @@ export default function PreviewPage() {
         <PreviewSlot name="DateRow"       path="src/client/components/ui/DateRow.tsx" />
         <PreviewSlot name="Field"         path="src/client/components/ui/Field.tsx" />
 
-        {/* ConfirmDialog — 버튼으로 열기 */}
         <PreviewSlot
           name="ConfirmDialog"
           path="src/client/components/ui/ConfirmDialog.tsx"
@@ -248,12 +349,41 @@ export default function PreviewPage() {
         title="티켓 컴포넌트"
         description="TicketCard · TicketForm · TicketModal"
       >
-        <PreviewSlot name="TicketCard — 기본"    path="src/client/components/ticket/TicketCard.tsx" />
-        <PreviewSlot name="TicketCard — 기한초과" path="src/client/components/ticket/TicketCard.tsx" />
-        <PreviewSlot name="TicketCard — 완료"    path="src/client/components/ticket/TicketCard.tsx" />
-        <PreviewSlot name="TicketForm" path="src/client/components/ticket/TicketForm.tsx" width="lg" />
+        {/* TicketCard — 기본 */}
+        <PreviewSlot
+          name="TicketCard — 기본"
+          path="src/client/components/ticket/TicketCard.tsx"
+          status="done"
+        >
+          <CardPreview ticket={CARD_BASIC} />
+        </PreviewSlot>
 
-        {/* TicketModal — 버튼으로 열기/닫기 */}
+        {/* TicketCard — 기한초과 */}
+        <PreviewSlot
+          name="TicketCard — 기한초과"
+          path="src/client/components/ticket/TicketCard.tsx"
+          status="done"
+        >
+          <CardPreview ticket={CARD_OVERDUE} />
+        </PreviewSlot>
+
+        {/* TicketCard — 완료 */}
+        <PreviewSlot
+          name="TicketCard — 완료"
+          path="src/client/components/ticket/TicketCard.tsx"
+          status="done"
+        >
+          <CardPreview ticket={CARD_DONE} />
+        </PreviewSlot>
+
+        {/* TicketForm */}
+        <PreviewSlot
+          name="TicketForm"
+          path="src/client/components/ticket/TicketForm.tsx"
+          width="lg"
+        />
+
+        {/* TicketModal */}
         <PreviewSlot
           name="TicketModal — create"
           path="src/client/components/ticket/TicketModal.tsx"
@@ -264,21 +394,47 @@ export default function PreviewPage() {
         </PreviewSlot>
       </PreviewSection>
 
-      {/* ── Phase 3: 레이아웃 · 보드 ─────────────────────────────────────────── */}
-      <PreviewSection
-        phase="Phase 3"
-        title="레이아웃 · 보드 컴포넌트"
-        description="Header · Column · KanbanBoard · BacklogSidebar"
-      >
-        <PreviewSlot name="NewTicketButton"  path="src/client/components/layout/NewTicketButton.tsx" width="sm" />
-        <PreviewSlot name="AddTicketButton"  path="src/client/components/board/AddTicketButton.tsx"  width="sm" />
-        <PreviewSlot name="ColumnHeader"     path="src/client/components/board/ColumnHeader.tsx"     width="sm" />
-        <PreviewSlot name="Header"           path="src/client/components/layout/Header.tsx"          width="full" />
-        <PreviewSlot name="Column — TODO"    path="src/client/components/board/Column.tsx"           width="lg" />
-        <PreviewSlot name="Column — 빈 컬럼" path="src/client/components/board/Column.tsx"           width="sm" />
-        <PreviewSlot name="BacklogSidebar"   path="src/client/components/board/BacklogSidebar.tsx"   width="lg" />
-        <PreviewSlot name="KanbanBoard"      path="src/client/components/board/KanbanBoard.tsx"      width="full" />
-      </PreviewSection>
+      {/* ── Phase 3: 보드 레이아웃 ───────────────────────────────────────────── */}
+      <section className="mb-12">
+        <div className="mb-4 flex items-baseline gap-3">
+          <span className="rounded-md bg-green-100 px-2 py-0.5 text-xs font-bold text-green-700">Phase 3</span>
+          <h2 className="text-lg font-bold text-gray-900">보드 레이아웃</h2>
+          <p className="text-sm text-gray-500">
+            BacklogSidebar (2) · TODO (3, 1 overdue) · IN_PROGRESS (1) · DONE (1)
+          </p>
+        </div>
+
+        {/* 개별 컴포넌트 행 */}
+        <div className="mb-4 grid grid-cols-3 gap-4">
+          <PreviewSlot name="NewTicketButton" path="src/client/components/layout/NewTicketButton.tsx" />
+          <PreviewSlot name="Header"          path="src/client/components/layout/Header.tsx" />
+          <PreviewSlot name="TicketForm"      path="src/client/components/ticket/TicketForm.tsx" />
+        </div>
+
+        {/* Board 4컬럼 전체 레이아웃 */}
+        <div
+          className="rounded-xl border bg-white p-4 shadow-sm"
+          style={{ borderColor: '#10B981' }}
+        >
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-gray-800">Board — 4컬럼 레이아웃</p>
+              <p className="mt-0.5 font-mono text-xs text-gray-400">
+                BacklogSidebar + KanbanBoard (Column × 3)
+              </p>
+            </div>
+            <span
+              className="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium"
+              style={{ background: '#D1FAE5', color: '#065F46' }}
+            >
+              완료
+            </span>
+          </div>
+          <div className="rounded-lg" style={{ background: '#F9FAFB', padding: '0.5rem' }}>
+            <BoardPreview />
+          </div>
+        </div>
+      </section>
 
       {/* ── Phase 4: 훅 ──────────────────────────────────────────────────────── */}
       <section className="mb-12">

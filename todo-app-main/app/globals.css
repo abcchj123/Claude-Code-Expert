@@ -167,6 +167,35 @@
   .btn-sm { padding: 0.25rem 0.625rem; font-size: 0.75rem; }
   .btn-md { padding: 0.5rem 1rem;      font-size: 0.875rem; }
   .btn-lg { padding: 0.625rem 1.25rem; font-size: 1rem; }
+
+  /* ── Ticket Card ─────────────────────────────────────────────── */
+  .ticket-card {
+    position: relative;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+    padding: 0.75rem;
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+    transition: box-shadow 150ms ease, border-color 150ms ease;
+  }
+  .ticket-card:hover {
+    box-shadow: var(--shadow-drag);
+  }
+  .ticket-card:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+  .ticket-card[data-overdue='true'] {
+    border-color: var(--color-overdue);
+  }
+  .ticket-card-done {
+    opacity: 0.85;
+  }
+  .ticket-card-done .ticket-title {
+    text-decoration: line-through;
+    color: var(--color-text-secondary);
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────

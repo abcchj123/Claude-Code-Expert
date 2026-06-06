@@ -16,6 +16,13 @@ const COLUMN_LABELS: Record<TicketStatus, string> = {
   DONE:        'Done',
 };
 
+const STATUS_BG: Record<TicketStatus, string> = {
+  BACKLOG:     '',
+  TODO:        'bg-column-todo',
+  IN_PROGRESS: 'bg-column-in-progress',
+  DONE:        'bg-column-done',
+};
+
 interface ColumnProps {
   status:         TicketStatus;
   tickets:        Ticket[];
@@ -32,21 +39,25 @@ export function Column({ status, tickets, onTicketEdit, onTicketDelete, onAddTic
   return (
     <div
       ref={setNodeRef}
-      className={`flex flex-col rounded-xl border bg-[var(--color-surface)] p-2 transition-colors ${
-        isOver ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/5' : 'border-[var(--color-border)]'
-      }`}
+      className={`flex flex-col rounded-xl border border-[var(--color-border)] p-2 transition-colors ${STATUS_BG[status]}${isOver ? ' is-over' : ''}`}
     >
       <ColumnHeader title={COLUMN_LABELS[status]} count={tickets.length} />
       <SortableContext items={ticketIds} strategy={verticalListSortingStrategy}>
         <div className="flex flex-col gap-2 overflow-y-auto py-1">
-          {tickets.map((t) => (
-            <TicketCard
-              key={t.id}
-              ticket={withMeta(t)}
-              onEdit={onTicketEdit}
-              onDelete={onTicketDelete}
-            />
-          ))}
+          {tickets.length === 0 ? (
+            <p className="py-4 text-center text-xs text-[var(--color-text-placeholder)]">
+              이 컬럼에 티켓이 없습니다
+            </p>
+          ) : (
+            tickets.map((t) => (
+              <TicketCard
+                key={t.id}
+                ticket={withMeta(t)}
+                onEdit={onTicketEdit}
+                onDelete={onTicketDelete}
+              />
+            ))
+          )}
         </div>
       </SortableContext>
       <AddTicketButton onClick={onAddTicket} />
