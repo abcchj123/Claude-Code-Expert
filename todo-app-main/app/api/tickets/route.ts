@@ -8,27 +8,42 @@ function validationError(message: string | undefined) {
   );
 }
 
+function internalError() {
+  return Response.json(
+    { error: { code: 'INTERNAL_ERROR', message: '서버 오류가 발생했습니다' } },
+    { status: 500 }
+  );
+}
+
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const status = searchParams.get('status') ?? undefined;
+  try {
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get('status') ?? undefined;
 
-  const result = getTicketsSchema.safeParse({ status });
-  if (!result.success) {
-    return validationError(result.error.errors[0]?.message);
+    const result = getTicketsSchema.safeParse({ status });
+    if (!result.success) {
+      return validationError(result.error.errors[0]?.message);
+    }
+
+    const list = await ticketService.findAll(result.data.status);
+    return Response.json(list, { status: 200 });
+  } catch {
+    return internalError();
   }
-
-  const list = await ticketService.findAll(result.data.status);
-  return Response.json(list, { status: 200 });
 }
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  const result = createTicketSchema.safeParse(body);
+  try {
+    const body = await request.json();
+    const result = createTicketSchema.safeParse(body);
 
-  if (!result.success) {
-    return validationError(result.error.errors[0]?.message);
+    if (!result.success) {
+      return validationError(result.error.errors[0]?.message);
+    }
+
+    const ticket = await ticketService.create(result.data);
+    return Response.json(ticket, { status: 201 });
+  } catch {
+    return internalError();
   }
-
-  const ticket = await ticketService.create(result.data);
-  return Response.json(ticket, { status: 201 });
 }
