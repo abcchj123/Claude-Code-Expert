@@ -107,6 +107,69 @@
 }
 
 /* ─────────────────────────────────────────────────────────────
+   Button 컴포넌트 클래스
+   src/client/components/ui/Button.tsx에서 사용
+───────────────────────────────────────────────────────────── */
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: var(--radius-card);
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background-color 150ms ease, border-color 150ms ease, opacity 150ms ease;
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-primary {
+    background-color: var(--color-primary);
+    color: #ffffff;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--color-primary-hover);
+  }
+
+  .btn-secondary {
+    background-color: transparent;
+    border-color: var(--color-border);
+    color: var(--color-text-primary);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background-color: var(--color-surface-hover);
+  }
+
+  .btn-ghost {
+    background-color: transparent;
+    color: var(--color-text-secondary);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background-color: var(--color-surface-hover);
+    color: var(--color-text-primary);
+  }
+
+  .btn-danger {
+    background-color: var(--color-priority-high);
+    color: #ffffff;
+  }
+  .btn-danger:hover:not(:disabled) {
+    background-color: #DC2626;
+  }
+
+  .btn-sm { padding: 0.25rem 0.625rem; font-size: 0.75rem; }
+  .btn-md { padding: 0.5rem 1rem;      font-size: 0.875rem; }
+  .btn-lg { padding: 0.625rem 1.25rem; font-size: 1rem; }
+}
+
+/* ─────────────────────────────────────────────────────────────
    DnD-kit 전용 유틸리티
    컴포넌트에서 className에 조건부로 적용한다:
      - is-dragging  : useSortable({ isDragging })
