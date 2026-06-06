@@ -1,14 +1,30 @@
 # Tika Development Changelog
 
 > 이 문서는 Tika 프로젝트의 개발 히스토리를 기록합니다.
-> 각 엔트리는 프롬프트, 변경사항, 영향받은 파일을 포함합니다.
+> `/changelog "요약"` 명령으로 자동 기록됩니다.
 
-**변경 기록 형식:**
-- 🎯 Prompt: 사용자 요청 또는 작업 설명
-- ✅ Changes: 추가/수정/삭제된 내용
-- 📊 Test Results: 테스트 실행 결과 (선택)
-- 📁 Files Modified: 변경된 파일 목록 및 라인 수
-- 🌿 Branches: 여러 브랜치에 적용된 경우 (선택)
+**엔트리 형식:**
+- **Prompt**: 사용자가 입력한 요청
+- **Change**: 변경 내용 (Addon / Modified / Deleted)
+- **Files Modified**: 변경된 파일 목록 및 라인 수
+- **Test Results**: 테스트 결과 (실행된 경우)
+
+---
+
+## [main] - 2026-06-06 21:16
+
+### Prompt
+> "/changelog 스킬 생성 — 매 세션 변경 이력을 CHANGELOG.md에 기록하고 CLAUDE.md 최근 변경사항 섹션을 자동 갱신하는 Skill 방식 구현"
+
+### Change
+- **Addon** : `/changelog "요약"` 스킬 정의 — git 상태·행 수·테스트 결과 수집 후 CHANGELOG.md 삽입 + CLAUDE.md 갱신 절차 포함 (`.claude/skills/changelog/SKILL.md`)
+- **Modified** : CHANGELOG.md 헤더 형식 업데이트 — 이모지 제거, Prompt/Change/Files Modified 새 형식 반영 (`CHANGELOG.md`)
+- **Modified** : pre-commit hook 설명 제거 및 `/changelog` 스킬 방식으로 교체, `## 최근 변경사항` 테이블 섹션 신규 추가 (`CLAUDE.md`)
+
+### Files Modified
+- `.claude/skills/changelog/SKILL.md` (+166, -0 lines)
+- `CHANGELOG.md` (+7, -8 lines)
+- `CLAUDE.md` (+12, -2 lines)
 
 ---
 

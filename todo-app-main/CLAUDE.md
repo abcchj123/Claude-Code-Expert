@@ -325,8 +325,7 @@ feature/*   # 기능 개발
 fix/*       # 버그 수정
 ```
 
-`pre-commit` hook이 CHANGELOG.md를 자동 업데이트한다.
-`/changelog` 수동 실행 시 중복 방지를 위해 hook이 스킵된다.
+`/changelog "요약"` 명령으로 CHANGELOG.md에 변경 이력을 수동 기록한다 (hook 없음, 사용자가 원할 때만 실행).
 
 ---
 
@@ -338,3 +337,15 @@ fix/*       # 버그 수정
 - `any` 타입
 - `console.log` 커밋
 - 명세 문서 없이 기능 추가·변경
+
+---
+
+## 최근 변경사항
+
+> `/changelog "요약"` 으로 자동 업데이트 — 최근 14일 이력
+
+| 날짜 | 브랜치 | 변경 요약 |
+|------|--------|-----------|
+| 2026-06-06 | main | /changelog 스킬 생성 — CHANGELOG.md·CLAUDE.md 자동 갱신 시스템 구축 |
+| 2026-06-06 | main | API INTERNAL_ERROR 핸들링 추가 (try/catch 전체 핸들러 적용) |
+| 2026-06-06 | main | Phase 2 클라이언트 컴포넌트 전체 구현 완료 |
