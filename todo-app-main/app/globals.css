@@ -1,7 +1,13 @@
 @import "tailwindcss";
 
-:root {
-  /* design tokens — src/shared/design/colors.json과 동기화 */
+/* ─────────────────────────────────────────────────────────────
+   Design Tokens
+   Tailwind v4 @theme — 유틸리티 클래스 자동 생성
+   (bg-primary, text-text-primary, shadow-card 등)
+   colors.json과 동기화 유지
+───────────────────────────────────────────────────────────── */
+@theme {
+  /* Core palette */
   --color-primary:          #3B82F6;
   --color-primary-hover:    #2563EB;
   --color-background:       #F9FAFB;
@@ -12,14 +18,125 @@
   --color-text-secondary:   #6B7280;
   --color-text-placeholder: #9CA3AF;
 
+  /* Status */
   --color-status-backlog:     #6B7280;
   --color-status-todo:        #3B82F6;
   --color-status-in-progress: #F59E0B;
   --color-status-done:        #10B981;
 
+  /* Priority */
   --color-priority-low:    #10B981;
   --color-priority-medium: #F59E0B;
   --color-priority-high:   #EF4444;
 
-  --color-overdue: #EF4444;
+  /* Column backgrounds — 컬럼별 파스텔 배경 (scrshot.png 기준) */
+  --color-column-todo:        #FEFCE8;   /* yellow-50 */
+  --color-column-in-progress: #EFF6FF;   /* blue-50   */
+  --color-column-done:        #F0FDF4;   /* green-50  */
+
+  /* Semantic */
+  --color-overdue:         #EF4444;
+  --color-overlay:         rgb(0 0 0 / 0.4);
+
+  /* Border radius — rounded-card, rounded-badge, rounded-modal */
+  --radius-card:  8px;
+  --radius-badge: 9999px;
+  --radius-modal: 12px;
+
+  /* Box shadows — shadow-card, shadow-drag, shadow-modal */
+  --shadow-card:  0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-drag:  0 10px 15px -3px rgb(0 0 0 / 0.15), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-modal: 0 20px 25px -5px rgb(0 0 0 / 0.12), 0 8px 10px -6px rgb(0 0 0 / 0.08);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Layout dimensions
+   Tailwind 유틸리티 불필요 — var() 직접 참조용
+───────────────────────────────────────────────────────────── */
+:root {
+  --sidebar-width: 280px;
+  --header-height: 56px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Base
+───────────────────────────────────────────────────────────── */
+@layer base {
+  html,
+  body {
+    height: 100%;
+    /* 보드 레이아웃이 컬럼별 스크롤을 직접 관리한다 */
+    overflow: hidden;
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* 컬럼 목록 스크롤바 — 얇고 비침 처리 */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: var(--radius-badge);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-placeholder);
+  }
+
+  /* 키보드 포커스 링 */
+  *:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* date input 달력 아이콘 밝기 조정 */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0.4;
+    cursor: pointer;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 0.8;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   DnD-kit 전용 유틸리티
+   컴포넌트에서 className에 조건부로 적용한다:
+     - is-dragging  : useSortable({ isDragging })
+     - is-over      : useDroppable({ isOver })
+     - dnd-overlay  : <DragOverlay> 내부 TicketCard
+     - dnd-sortable : SortableContext 자식 — transform 트랜지션
+───────────────────────────────────────────────────────────── */
+
+/* dnd-kit이 translate() 인라인 스타일로 움직임을 제어한다.
+   transition: transform 을 적용해 sortable 애니메이션을 부드럽게 한다. */
+@utility dnd-sortable {
+  transition: transform 200ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* 드래그 중인 원본 카드 — 반투명으로 자리 표시 */
+@utility is-dragging {
+  opacity: 0.4;
+  cursor: grabbing;
+}
+
+/* 드롭 가능한 컬럼에 카드가 올라왔을 때 배경 강조 */
+@utility is-over {
+  background-color: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+  outline-offset: -1px;
+}
+
+/* DragOverlay 내부 카드 — 그림자로 '들려 있음' 표현 */
+@utility dnd-overlay {
+  box-shadow: var(--shadow-drag);
+  cursor: grabbing;
+  border-radius: var(--radius-card);
 }
