@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Button } from '@/client/components/ui/Button';
 import { Field } from '@/client/components/ui/Field';
 import { createTicketSchema } from '@/shared/validations/ticket';
 import type { CreateTicketInput } from '@/shared/validations/ticket';
@@ -20,6 +21,11 @@ const EMPTY: CreateTicketInput = {
   dueDate:          undefined,
 };
 
+// API 스키마 메시지와 분리된 UI 전용 에러 메시지
+const UI_ERROR: Partial<Record<keyof CreateTicketInput, string>> = {
+  dueDate: '종료예정일은 오늘 이후 날짜를 선택해주세요.',
+};
+
 export function TicketForm({ defaultValues, onSubmit, onCancel, isSubmitting }: TicketFormProps) {
   const [values, setValues] = useState<CreateTicketInput>({ ...EMPTY, ...defaultValues });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -36,7 +42,9 @@ export function TicketForm({ defaultValues, onSubmit, onCancel, isSubmitting }: 
       const mapped: Record<string, string> = {};
       result.error.errors.forEach((err) => {
         const key = err.path[0] as string;
-        if (key && !mapped[key]) mapped[key] = err.message;
+        if (key && !mapped[key]) {
+          mapped[key] = UI_ERROR[key as keyof CreateTicketInput] ?? err.message;
+        }
       });
       setErrors(mapped);
       return;
@@ -49,9 +57,9 @@ export function TicketForm({ defaultValues, onSubmit, onCancel, isSubmitting }: 
       <Field label="제목 *" error={errors.title}>
         <input
           type="text"
-          value={values.title}
+          value={values.title ?? ''}
           onChange={(e) => set('title', e.target.value)}
-          className="w-full rounded-lg border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+          className="form-input"
           placeholder="티켓 제목을 입력하세요"
         />
       </Field>
@@ -61,7 +69,7 @@ export function TicketForm({ defaultValues, onSubmit, onCancel, isSubmitting }: 
           value={values.description ?? ''}
           onChange={(e) => set('description', e.target.value)}
           rows={3}
-          className="w-full resize-none rounded-lg border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+          className="form-input resize-none"
           placeholder="설명 (선택)"
         />
       </Field>
@@ -70,7 +78,7 @@ export function TicketForm({ defaultValues, onSubmit, onCancel, isSubmitting }: 
         <select
           value={values.priority ?? 'MEDIUM'}
           onChange={(e) => set('priority', e.target.value)}
-          className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+          className="form-input"
         >
           <option value="LOW">Low</option>
           <option value="MEDIUM">Medium</option>
@@ -84,7 +92,7 @@ export function TicketForm({ defaultValues, onSubmit, onCancel, isSubmitting }: 
             type="date"
             value={values.plannedStartDate ?? ''}
             onChange={(e) => set('plannedStartDate', e.target.value)}
-            className="w-full rounded-lg border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+            className="form-input"
           />
         </Field>
         <Field label="계획 종료일" error={errors.dueDate}>
@@ -92,26 +100,18 @@ export function TicketForm({ defaultValues, onSubmit, onCancel, isSubmitting }: 
             type="date"
             value={values.dueDate ?? ''}
             onChange={(e) => set('dueDate', e.target.value)}
-            className="w-full rounded-lg border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+            className="form-input"
           />
         </Field>
       </div>
 
       <footer className="flex justify-end gap-3 pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-lg px-4 py-2 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]"
-        >
+        <Button type="button" variant="ghost" onClick={onCancel}>
           취소
-        </button>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-lg bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
-        >
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? '저장 중...' : '저장'}
-        </button>
+        </Button>
       </footer>
     </form>
   );

@@ -196,6 +196,39 @@
     text-decoration: line-through;
     color: var(--color-text-secondary);
   }
+
+  /* ── Form ──────────────────────────────────────────────────── */
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .form-input {
+    width: 100%;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--color-text-primary);
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+  .form-input:focus-visible {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent);
+  }
+  .form-input::placeholder {
+    color: var(--color-text-placeholder);
+  }
+
+  .form-error {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: var(--color-priority-high);
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────

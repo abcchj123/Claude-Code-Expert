@@ -8,11 +8,11 @@ interface FieldProps {
 
 export function Field({ label, error, children }: FieldProps) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="form-field">
       <label className="text-sm font-medium text-[var(--color-text-primary)]">{label}</label>
       {children}
       {error && (
-        <span role="alert" className="text-xs text-[var(--color-priority-high)]">
+        <span role="alert" className="form-error">
           {error}
         </span>
       )}
